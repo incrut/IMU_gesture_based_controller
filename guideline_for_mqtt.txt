@@ -1,0 +1,80 @@
+Install MQTT Broker on Raspberry Pi:
+    sudo apt update
+    sudo apt install mosquitto mosquitto-clients
+
+Find IP of the devise running MQTT (RasPi):
+    ip a
+    ping public_ip (on the other devise try accessing it via ping pub ip of the RasPi running the MQTT)
+    
+To run the MQTT server:
+    sudo systemctl start mosquitto
+    sudo systemctl enable mosquitto
+    sudo systemctl status mosquitto (to check if the server is running or not)
+    
+To stop the MQTT server:
+    sudo systemctl stop mosquitto
+    sudo systemctl disable mosquitto
+    sudo systemctl status mosquitto (to check if the server is running or not)
+
+To check MQTT broker logs:
+    sudo tail /var/log/mosquitto/mosquitto.log
+    
+To restart the MQTT server:
+    sudo systemctl restart mosquitto
+
+Firewall Check (it usually blocks the connection to the server (and the vnc also)):
+    sudo apt-get install ufw
+    
+    sudo ufw status
+    sudo ufw allow 1883 (allows traffic (incoming connections) on port 1883 (the one we use for Pico-RasPi connection as it is default MQTT port))
+    
+    sudo netstat -tulpn | grep 1883 (if we need to check whether Mosquitto is listening on port 1883)
+    
+    sudo ufw enable (enable the firewall)
+
+Open the Mosquitto configuration file for editing. The default location is /etc/mosquitto/mosquitto.conf:
+    sudo nano /etc/mosquitto/mosquitto.conf
+    
+Look for the line that starts with listener. It might look like this:
+    listener 1883
+
+Change it to listen on all available network interfaces:
+    listener 1883 0.0.0.0 (If there is no listener line in the mosquitto.conf file, you can add it)
+    
+Ensure that the configuration file allows connections with the given username and password. 
+Look for lines like allow_anonymous, and make sure it's set to false. If there is no such line, you can add it:    
+    allow_anonymous false 
+
+Ensure that your Mosquitto broker requires authentication. 
+Open the Mosquitto configuration file and look for the password_file directive. 
+This should point to a file containing usernames and hashed passwords.
+    password_file /etc/mosquitto/passwd
+
+Save and exit mosquitto.conf
+
+Create a Password File:
+Use the mosquitto_passwd command to create a password file and add a user:
+    sudo mosquitto_passwd -c /etc/mosquitto/passwd your_username
+
+If you need to add more users later, omit the -c option:
+    sudo mosquitto_passwd /etc/mosquitto/passwd another_username
+
+Check Mosquitto Logs: Examine the logs of the Mosquitto broker for any error messages or additional information:
+    sudo journalctl -u mosquitto -e
+
+
+To fix VNC after that we need:
+    sudo ufw status (check if it is installed and active)
+    sudo ufw allow 22      # Allow SSH
+    sudo ufw allow 80      # Allow HTTP
+    sudo ufw allow 443     # Allow HTTPS
+    sudo ufw allow icmp    # Allow ICMP (ping)
+    sudo ufw allow 1883    # Allow port 1883 for mqtt
+    sudo ufw allow 5900    # Allow VNC (port 5900)
+
+    sudo ufw reload (after making changes, reload UFW to apply the new rules)
+
+    sudo iptables -L (You can also check the current iptables rules directly, This command will display the current firewall rules)
+    
+    
+    
