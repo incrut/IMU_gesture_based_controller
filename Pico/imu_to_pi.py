@@ -40,6 +40,8 @@ def publish_data(data):
     
 
 def main():
+    led = machine.Pin("LED", machine.Pin.OUT) # Onboard LED initialisation
+    led.on() # Indication that Pico is powered
     ip = connect_wifi()
     connect_mqtt()
     init_IMU()
@@ -47,6 +49,7 @@ def main():
     state = "HIGH"
     
     while True:
+        led.on() # Blink with LED to show that function is running
         IMU_data = get_IMU_values()
         print(f"B: {IMU_data[0]:.2f} hPa")
         print(f"A: {IMU_data[1]} g")
@@ -66,6 +69,7 @@ def main():
         publish_data(str(data))
 #         time.sleep(0.1)
         print("\n")
+        led.off() # Blink with LED to show that function is running
 
 if __name__ == "__main__":
     main()
